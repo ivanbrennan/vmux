@@ -1,0 +1,10 @@
+{
+  "plugin/*.vim": {
+    "type": "plugin",
+    "alternate": "spec/plugin/{}_spec.rb"
+  },
+  "spec/plugin/*_spec.rb": {
+    "type": "spec",
+    "alternate": "plugin/{}.vim"
+  }
+}
