@@ -11,9 +11,6 @@ function! s:InitVar(variable_name)
   endif
 endfunction
 
-call s:InitVar('g:vmux_primary')
-call s:InitVar('g:vmux_secondary')
-
 function! s:SetTarget(rank)
   call s:InitVar('g:vmux_' . a:rank)
 
@@ -21,15 +18,17 @@ function! s:SetTarget(rank)
   let default  = 'g:vmux_' . a:rank
   let complete = '"custom,ListTargets"'
 
-  execute 'let g:vmux_' . a:rank . ' = ' . 'input(' . prompt . ',' . default . ',' . complete . ')'
+  execute 'let g:vmux_'.a:rank.' = '.'input('.prompt.', '.default.', '.complete.')'
 endfunction
 
 function! ListTargets(A, L, P)
-  let chars = '[-_[:alnum:]]\+'
+  let session_pattern = '\v^\zs[-_[:alnum:]]+\ze:'
+  let window_pattern  = '\v^[-_[:alnum:]]+:\zs\d+\ze\.'
+  let pane_pattern    = '\v^[-_[:alnum:]]+:\d+\.\zs\d+'
 
-  let session = matchstr(a:L, '^\zs' . chars . '\ze:')
-  let window  = matchstr(a:L, '^'    . chars .    ':\zs' . chars . '\ze\.')
-  let pane    = matchstr(a:L, '^'    . chars .    ':'    . chars .    '\.\zs\d\+')
+  let session = matchstr(a:L, session_pattern)
+  let window  = matchstr(a:L, window_pattern)
+  let pane    = matchstr(a:L, pane_pattern)
 
   if session == ''
     return s:TmuxSessions()
@@ -41,16 +40,34 @@ function! ListTargets(A, L, P)
 endfunction
 
 function! s:TmuxSessions()
-  return system("tmux list-sessions -F '#{session_name}'")
+  let format = "'#{session_name}'"
+  return s:SendTmuxCommand('list-sessions', '', format)
 endfunction
 
 function! s:TmuxWindows(session)
-  return system("tmux list-windows -t " . a:session . " -F '#{session_name}:#{window_index}'")
+  let target = a:session
+  let format = "'#{session_name}:#{window_index}'"
+  return s:SendTmuxCommand('list-windows', target, format)
 endfunction
 
 function! s:TmuxPanes(session, window)
-  return system("tmux list-panes -t " . a:session . ":" . a:window . " -F '#{session_name}:#{window_index}.#{pane_index}'")
+  let target = a:session . ":" . a:window
+  let format = "'#{session_name}:#{window_index}.#{pane_index}'"
+  return s:SendTmuxCommand('list-panes', target, format)
 endfunction
+
+function! s:SendTmuxCommand(cmd, ...)
+  let a1 = exists('a:1') && a:1 != ''
+  let target = a1 ? ' -t ' . a:1 : ''
+
+  let a2 = exists('a:2') && a:2 != ''
+  let format = a2 ? ' -F ' . a:2 : ''
+
+  return system('tmux ' . a:cmd . target . format)
+endfunction
+
+call s:InitVar('g:vmux_primary')
+call s:InitVar('g:vmux_secondary')
 
 command! VmuxPrimary   call s:SetTarget('primary')
 command! VmuxSecondary call s:SetTarget('secondary')
