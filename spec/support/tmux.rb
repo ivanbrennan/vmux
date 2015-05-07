@@ -1,5 +1,5 @@
 module Tmux
-  def spawn_new_session(session_name)
+  def new_session(session_name)
     sidestep_nested_session_restriction do
       run_silent_command("new-session -d -s #{session_name}")
     end
@@ -7,6 +7,15 @@ module Tmux
 
   def kill_session(session_name)
     run_silent_command("kill-session -t #{session_name}")
+  end
+
+  def new_window(session_name, window_index)
+    run_silent_command("new-window -t #{session_name}:#{window_index}")
+  end
+
+  def split_window(session_name, window_index, orientation='v')
+    command = "split-window -#{orientation} -t #{session_name}:#{window_index}"
+    run_silent_command(command)
   end
 
   private

@@ -48,6 +48,15 @@ direct a command at a target.
   Omitting window or window-and-pane allows the default tmux behavior,
   targetting the active window and/or pane in the targeted session.
 
+  If window and/or pane are specified, tell the tmux session to select that
+  window and/or pane before running further commands.
+
+- Allow for automatically opening a new pane or window upon trigger
+  This might be an alternative to targeting the current window/pane.
+  If only session is specified, tests pop open a new window in the
+  specified session; if only session:window is specified, tests pop open
+  a new pane in the specified window.
+
 Inspiration from vim-tmux-runner and tslime
 
 API commands:

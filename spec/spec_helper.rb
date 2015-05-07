@@ -7,7 +7,7 @@ include Tmux
 ROOT = File.expand_path('../..', __FILE__)
 
 Vimrunner::RSpec.configure do |config|
-  config.reuse_server = true
+  config.reuse_server = false
 
   config.start_vim do
     vim = Vimrunner.start
@@ -31,7 +31,7 @@ RSpec.configure do |config|
 end
 
 def renew_tmux(session_names, &block)
-  session_names.each { |name| spawn_new_session(name) }
+  session_names.each { |name| new_session(name) }
   yield
   session_names.each { |name| kill_session(name) }
 end

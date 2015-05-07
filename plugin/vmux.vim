@@ -5,10 +5,17 @@ if exists("g:loaded_vmux") || v:version < 700 || &cp
 endif
 let g:loaded_vmux = 1
 
-function! s:SetTarget(rank)
-  if ! exists('g:vmux_' . a:rank)
-    execute 'let g:vmux_' . a:rank . ' = ""'
+function! s:InitVar(variable_name)
+  if ! exists(a:variable_name)
+    execute 'let ' . a:variable_name . ' = ""'
   endif
+endfunction
+
+call s:InitVar('g:vmux_primary')
+call s:InitVar('g:vmux_secondary')
+
+function! s:SetTarget(rank)
+  call s:InitVar('g:vmux_' . a:rank)
 
   let prompt   = '"Enter ' . a:rank . ' target: "'
   let default  = 'g:vmux_' . a:rank
