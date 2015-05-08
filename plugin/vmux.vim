@@ -40,23 +40,23 @@ function! ListTargets(A, L, P)
 endfunction
 
 function! s:TmuxSessions()
-  return s:SendTmuxCommand('list-sessions', '', "'#{session_name}'")
+  return s:TmuxList('sessions', '', "'#{session_name}'")
 endfunction
 
 function! s:TmuxWindows(session)
   let format = "'#{session_name}:#{window_index}'"
-  return s:SendTmuxCommand('list-windows', a:session, format)
+  return s:TmuxList('windows', a:session, format)
 endfunction
 
 function! s:TmuxPanes(session, window)
   let format = "'#{session_name}:#{window_index}.#{pane_index}'"
-  return s:SendTmuxCommand('list-panes', a:session.':'.a:window, format)
+  return s:TmuxList('panes', a:session.':'.a:window, format)
 endfunction
 
-function! s:SendTmuxCommand(command, target, format)
+function! s:TmuxList(type, target, format)
   let target = a:target == '' ? '' : ' -t '.a:target
   let format = a:format == '' ? '' : ' -F '.a:format
-  return system('tmux ' . a:command . target . format)
+  return system('tmux list-' . a:type . target . format)
 endfunction
 
 call s:InitVar('g:vmux_primary')
