@@ -18,6 +18,10 @@ module Tmux
     run_silent_command(command)
   end
 
+  def window_index(session_name)
+    run_silent_command("display-message -t #{session_name} -p '\#{window_index}'")
+  end
+
   private
 
   def run_silent_command(command)

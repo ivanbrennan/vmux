@@ -59,9 +59,17 @@ function! s:TmuxList(type, target, format)
   return system('tmux list-' . a:type . target . format)
 endfunction
 
+function! s:RevealTarget(rank)
+  execute 'let target = g:vmux_' . a:rank
+  let session_window = matchstr(target, '\v^\zs[-_[:alnum:]]+:?\d*\ze')
+  call system('tmux select-window -t ' . session_window)
+endfunction
+
 call s:InitVar('g:vmux_primary')
 call s:InitVar('g:vmux_secondary')
 
-command! VmuxPrimary   call s:SetTarget('primary')
-command! VmuxSecondary call s:SetTarget('secondary')
+command! VmuxPrimary         call s:SetTarget('primary')
+command! VmuxSecondary       call s:SetTarget('secondary')
+command! VmuxRevealPrimary   call s:RevealTarget('primary')
+command! VmuxRevealSecondary call s:RevealTarget('secondary')
 

@@ -107,4 +107,28 @@ describe "vmux" do
       end
     end
   end
+
+  describe "revealing target" do
+    before(:each) do
+      [1, 2].each { |windex| new_window("vmux-test-session-1", windex) }
+    end
+
+    it "can reveal primary target" do
+      vim.feedkeys ":VmuxPrimary\\<CR>"
+      vim.feedkeys "vmux-test-session-1:1.0\\<CR>"
+
+      expect{
+        vim.command ":VmuxRevealPrimary"
+      }.to change{ window_index("vmux-test-session-1") }.to("1")
+    end
+
+    it "can reveal secondary target" do
+      vim.feedkeys ":VmuxSecondary\\<CR>"
+      vim.feedkeys "vmux-test-session-1:0.0\\<CR>"
+
+      expect{
+        vim.command ":VmuxRevealSecondary"
+      }.to change{ window_index("vmux-test-session-1") }.to("0")
+    end
+  end
 end
