@@ -16,47 +16,38 @@ function! s:SetTarget(rank)
 
   let prompt   = '"Enter ' . a:rank . ' target: "'
   let default  = 'g:vmux_' . a:rank
-  let complete = '"custom,ListTargets"'
+  let complete = '"custom,Targets"'
 
   execute 'let g:vmux_'.a:rank.' = '.'input('.prompt.', '.default.', '.complete.')'
 endfunction
 
-function! ListTargets(A, L, P)
-  let session_pattern = '\v^\zs[-_[:alnum:]]+\ze:'
-  let window_pattern  = '\v^[-_[:alnum:]]+:\zs\d+\ze\.'
-  let pane_pattern    = '\v^[-_[:alnum:]]+:\d+\.\zs\d+'
-
-  let session = matchstr(a:L, session_pattern)
-  let window  = matchstr(a:L, window_pattern)
-  let pane    = matchstr(a:L, pane_pattern)
+function! Targets(A, L, P)
+  let session = matchstr(a:L, '\v^\zs[-_[:alnum:]]+\ze:')
+  let window  = matchstr(a:L, '\v^[-_[:alnum:]]+:\zs\d+\ze\.')
+  let pane    = matchstr(a:L, '\v^[-_[:alnum:]]+:\d+\.\zs\d+')
 
   if session == ''
-    return s:TmuxSessions()
+    return s:Sessions()
   elseif window == ''
-    return s:TmuxWindows(session)
+    return s:Windows(session)
   elseif pane == ''
-    return s:TmuxPanes(session, window)
+    return s:Panes(session, window)
   endif
 endfunction
 
-function! s:TmuxSessions()
-  return s:TmuxList('sessions', '', "'#{session_name}'")
+function! s:Sessions()
+  return system("tmux list-sessions -F '#{session_name}'")
 endfunction
 
-function! s:TmuxWindows(session)
+function! s:Windows(session)
   let format = "'#{session_name}:#{window_index}'"
-  return s:TmuxList('windows', a:session, format)
+  return system('tmux list-windows -t' . a:session . ' -F' . format)
 endfunction
 
-function! s:TmuxPanes(session, window)
+function! s:Panes(session, window)
+  let target = a:session . ':' . a:window
   let format = "'#{session_name}:#{window_index}.#{pane_index}'"
-  return s:TmuxList('panes', a:session.':'.a:window, format)
-endfunction
-
-function! s:TmuxList(type, target, format)
-  let target = a:target == '' ? '' : ' -t '.a:target
-  let format = a:format == '' ? '' : ' -F '.a:format
-  return system('tmux list-' . a:type . target . format)
+  return system('tmux list-panes -t' . target . ' -F' . format)
 endfunction
 
 function! s:RevealTarget(rank)
