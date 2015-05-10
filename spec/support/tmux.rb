@@ -22,6 +22,10 @@ module Tmux
     run_silent_command("display-message -t #{session_name} -p '\#{window_index}'")
   end
 
+  def capture_pane(target_pane)
+    run_silent_command("capture-pane -p -t #{target_pane}")
+  end
+
   private
 
   def run_silent_command(command)

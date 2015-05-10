@@ -54,11 +54,17 @@ function! s:RevealTarget(rank)
   call system('tmux select-window -t ' . session_window)
 endfunction
 
+function! s:SendKeys(rank, text)
+  execute 'let target = g:vmux_' . a:rank
+  call system('tmux send-keys -t' . target . ' ' . a:text . ' Enter')
+endfunction
+
 call s:InitVar('g:vmux_primary')
 call s:InitVar('g:vmux_secondary')
 
-command! VmuxPrimary         call s:SetTarget('primary')
-command! VmuxSecondary       call s:SetTarget('secondary')
-command! VmuxRevealPrimary   call s:RevealTarget('primary')
-command! VmuxRevealSecondary call s:RevealTarget('secondary')
-
+command!          VmuxPrimary         call s:SetTarget('primary')
+command!          VmuxSecondary       call s:SetTarget('secondary')
+command!          VmuxRevealPrimary   call s:RevealTarget('primary')
+command!          VmuxRevealSecondary call s:RevealTarget('secondary')
+command! -nargs=1 VmuxSendPrimary     call s:SendKeys('primary', <f-args>)
+command! -nargs=1 VmuxSendSecondary   call s:SendKeys('secondary', <f-args>)

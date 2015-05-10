@@ -131,4 +131,18 @@ describe "vmux" do
       }.to("0")
     end
   end
+
+  describe ":VmuxSendPrimary" do
+    it "sends command to target" do
+      vim.feedkeys ":VmuxPrimary\\<CR>"
+      target_pane = "vmux-test-session-1:0.0"
+      vim.feedkeys "#{target_pane}\\<CR>"
+
+      timestamp = Time.now.strftime("%Y%m%d%H%M%S")
+      vim.command "VmuxSendPrimary \"echo '#{timestamp}'\""
+      pane_contents = capture_pane(target_pane)
+
+      expect(pane_contents).to match(/echo '#{timestamp}'\n#{timestamp}/)
+    end
+  end
 end
