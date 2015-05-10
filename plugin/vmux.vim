@@ -12,8 +12,6 @@ function! s:InitVar(variable_name)
 endfunction
 
 function! s:SetTarget(rank)
-  call s:InitVar('g:vmux_' . a:rank)
-
   let prompt   = '"Enter ' . a:rank . ' target: "'
   let default  = 'g:vmux_' . a:rank
   let complete = '"custom,Targets"'
