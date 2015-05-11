@@ -117,7 +117,7 @@ describe "vmux" do
       vim.feedkeys ":VmuxPrimary\\<CR>"
       vim.feedkeys "vmux-test-session-1:1.0\\<CR>"
 
-      expect{ vim.command ":VmuxRevealPrimary" }.to change{
+      expect{ vim.command "VmuxRevealPrimary" }.to change{
         window_index("vmux-test-session-1")
       }.to("1")
     end
@@ -126,7 +126,7 @@ describe "vmux" do
       vim.feedkeys ":VmuxSecondary\\<CR>"
       vim.feedkeys "vmux-test-session-1:0.0\\<CR>"
 
-      expect{ vim.command ":VmuxRevealSecondary" }.to change{
+      expect{ vim.command "VmuxRevealSecondary" }.to change{
         window_index("vmux-test-session-1")
       }.to("0")
     end
