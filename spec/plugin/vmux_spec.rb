@@ -130,6 +130,19 @@ describe "vmux" do
         window_index("vmux-test-session-1")
       }.to("0")
     end
+
+    context "with a non-existant target" do
+      it "shows an error message" do
+        vim.feedkeys ":VmuxPrimary\\<CR>"
+        vim.feedkeys "vmux-test-session-1:9.0\\<CR>"
+
+        vim.command "VmuxRevealPrimary"
+
+        expect(vim.echo("v:errmsg")).to eq(
+          "vmux: window not found: vmux-test-session-1:9"
+        )
+      end
+    end
   end
 
   describe ":VmuxSendPrimary" do

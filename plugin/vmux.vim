@@ -51,7 +51,16 @@ endfunction
 function! s:RevealTarget(rank)
   execute 'let target = g:vmux_' . a:rank
   let session_window = matchstr(target, '\v^\zs[-_[:alnum:]]+:?\d*\ze')
-  call system('tmux select-window -t ' . session_window)
+  call s:SystemCall('tmux select-window -t ' . session_window)
+endfunction
+
+function! s:SystemCall(command)
+  let out = system(a:command)
+  if v:shell_error
+    let message = 'vmux: ' . matchstr(out, '\p\+')
+    echohl ErrorMsg | echom message | echohl None
+    let v:errmsg = message
+  endif
 endfunction
 
 function! s:SendKeys(rank, text)
