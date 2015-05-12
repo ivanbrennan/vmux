@@ -5,16 +5,20 @@ module Tmux
     end
   end
 
-  def kill_session(session_name)
-    run_silent_command("kill-session -t #{session_name}")
-  end
-
   def list_sessions
     run_silent_command("list-sessions -F '\#{session_name}'").split("\n")
   end
 
+  def kill_session(session_name)
+    run_silent_command("kill-session -t #{session_name}")
+  end
+
   def new_window(session_name, window_index)
     run_silent_command("new-window -t #{session_name}:#{window_index}")
+  end
+
+  def window_index(session_name)
+    run_silent_command("display-message -t #{session_name} -p '\#{window_index}'")
   end
 
   def split_window(session_name, window_index, orientation='v')
@@ -22,9 +26,6 @@ module Tmux
     run_silent_command(command)
   end
 
-  def window_index(session_name)
-    run_silent_command("display-message -t #{session_name} -p '\#{window_index}'")
-  end
 
   def capture_pane(target_pane)
     run_silent_command("capture-pane -p -t #{target_pane}")
