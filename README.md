@@ -57,6 +57,14 @@ direct a command at a target.
   specified session; if only session:window is specified, tests pop open
   a new pane in the specified window.
 
+- g:vmux_auto_spawn option
+- 0 : If target doesn't specify a window and/or pane, commands to go to
+  whichever is active.
+- 1 : If target doesn't specify a window, create one named "vmux" and
+  adjust target to point at "\<session>:vmux.0". If target specifies
+  window but no pane, split the window's currently active pane and adjust
+  target to point at the new pane.
+
 Inspiration from vim-tmux-runner and tslime
 
 API commands:
