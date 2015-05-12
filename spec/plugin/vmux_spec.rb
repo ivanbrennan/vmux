@@ -10,6 +10,9 @@ describe "vmux" do
   it "initializes secondary target" do
     expect(vim.echo "g:vmux_secondary").to eq("")
   end
+  it "initializes auto-spawn option" do
+    expect(vim.echo "g:vmux_auto_spawn").to eq("")
+  end
 
   it "doesn't clobber a previously set target" do
     eager_target = "my-special-session"
@@ -122,27 +125,65 @@ describe "vmux" do
     end
   end
 
-  describe "revealing target" do
+  describe "opening target" do
     before(:each) do
       [1, 2].each { |windex| new_window("vmux-test-session-1", windex) }
     end
 
-    it "can reveal primary target" do
-      vim.feedkeys ":VmuxPrimary\\<CR>"
-      vim.feedkeys "vmux-test-session-1:1.0\\<CR>"
+    context "with an existing pane targeted" do
+      before(:each) do
+        vim.feedkeys ":VmuxPrimary\\<CR>"
+        vim.feedkeys "vmux-test-session-1:1.0\\<CR>"
+      end
 
-      expect{ vim.command "VmuxRevealPrimary" }.to change{
-        window_index("vmux-test-session-1")
-      }.to("1")
+      it "selects targeted window" do
+        expect{ vim.command "VmuxOpenPrimary" }.to change{
+          window_index("vmux-test-session-1")
+        }.to("1")
+      end
+
+      it "selects targeted pane" do
+        split_window("vmux-test-session-1", "1")
+        select_pane("vmux-test-session-1", "1", "1")
+
+        expect{ vim.command "VmuxOpenPrimary" }.to change{
+          pane_index("vmux-test-session-1", "1")
+        }.to("0")
+      end
     end
 
-    it "can reveal secondary target" do
-      vim.feedkeys ":VmuxSecondary\\<CR>"
-      vim.feedkeys "vmux-test-session-1:0.0\\<CR>"
+    context "with an existing window targeted" do
+      before(:each) do
+        vim.feedkeys ":VmuxSecondary\\<CR>"
+        vim.feedkeys "vmux-test-session-1:1\\<CR>"
+      end
 
-      expect{ vim.command "VmuxRevealSecondary" }.to change{
-        window_index("vmux-test-session-1")
-      }.to("0")
+      context "and auto-spawn off" do
+        it "selects targeted window" do
+          expect{ vim.command "VmuxOpenSecondary" }.to change{
+            window_index("vmux-test-session-1")
+          }.to("1")
+        end
+
+        it "uses targeted window's active pane" do
+          expect{ vim.command "VmuxOpenSecondary" }.not_to change{
+            pane_index("vmux-test-session-1", "1")
+          }
+        end
+
+        it "doesn't generate an error" do
+          vim.command "VmuxOpenSecondary"
+          expect(vim.echo "v:errmsg").to eq("")
+        end
+
+        it "adjusts target to point at the active pane" do
+          2.times { split_window("vmux-test-session-1", "1") }
+
+          expect{ vim.command "VmuxOpenSecondary" }.to change{
+            vim.echo "g:vmux_secondary"
+          }.from("vmux-test-session-1:1").to("vmux-test-session-1:1.2")
+        end
+      end
     end
 
     context "with a non-existant target" do
@@ -150,7 +191,7 @@ describe "vmux" do
         vim.feedkeys ":VmuxPrimary\\<CR>"
         vim.feedkeys "vmux-test-session-1:9.0\\<CR>"
 
-        vim.command "VmuxRevealPrimary"
+        vim.command "VmuxOpenPrimary"
 
         expect(vim.echo("v:errmsg")).to eq(
           "vmux: window not found: vmux-test-session-1:9"

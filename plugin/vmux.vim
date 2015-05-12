@@ -49,10 +49,20 @@ function! s:Panes(session, window)
   return system('tmux list-panes -t' . target . ' -F' . format)
 endfunction
 
-function! s:RevealTarget(rank)
+function! s:OpenTarget(rank)
   execute 'let target = g:vmux_' . a:rank
-  let session_window = matchstr(target, '\v^\zs[-_[:alnum:]]+:?\d*\ze')
-  call s:SystemCall('tmux select-window -t ' . session_window)
+  let session = matchstr(target, '\v^\zs[-_[:alnum:]]+')
+  let window  = matchstr(target, '\v^[-_[:alnum:]]+:\zs\d+')
+  let pane    = matchstr(target, '\v^[-_[:alnum:]]+:\d+\.\zs\d+')
+
+  call s:SystemCall('tmux select-window -t ' . session . ':' . window)
+  if pane == ''
+    let pane_query = 'tmux display-message -p -t ' . session . ':' . window . " '#{pane_index}'"
+    let pane_index = matchstr(system(pane_query), '\d\+')
+    execute 'let g:vmux_' . a:rank . ' .= ".' . pane_index . '"'
+  else
+    call s:SystemCall('tmux select-pane -t ' . session . ':' . window . '.' . pane)
+  endif
 endfunction
 
 function! s:SystemCall(command)
@@ -73,10 +83,11 @@ endfunction
 
 call s:InitVar('g:vmux_primary')
 call s:InitVar('g:vmux_secondary')
+call s:InitVar('g:vmux_auto_spawn')
 
-command!          VmuxPrimary         call s:SetTarget('primary')
-command!          VmuxSecondary       call s:SetTarget('secondary')
-command!          VmuxRevealPrimary   call s:RevealTarget('primary')
-command!          VmuxRevealSecondary call s:RevealTarget('secondary')
-command! -nargs=1 VmuxSendPrimary     call s:SendKeys('primary', <f-args>)
-command! -nargs=1 VmuxSendSecondary   call s:SendKeys('secondary', <f-args>)
+command!          VmuxPrimary       call s:SetTarget('primary')
+command!          VmuxSecondary     call s:SetTarget('secondary')
+command!          VmuxOpenPrimary   call s:OpenTarget('primary')
+command!          VmuxOpenSecondary call s:OpenTarget('secondary')
+command! -nargs=1 VmuxSendPrimary   call s:SendKeys('primary', <f-args>)
+command! -nargs=1 VmuxSendSecondary call s:SendKeys('secondary', <f-args>)
