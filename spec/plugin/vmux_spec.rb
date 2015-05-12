@@ -105,6 +105,20 @@ describe "vmux" do
           expect(vim.echo "g:vmux_primary").to eq("vmux-test-session-2:0.2")
         end
       end
+
+      context "with no available tmux server" do
+        it "doesn't tab complete" do
+          if list_sessions.sort == vmux_sessions.sort
+            kill_server
+          else
+            raise "Please shut down tmux before running this test."
+          end
+
+          vim.command 'call feedkeys("\<Tab>something\<CR>", "t")'
+
+          expect(vim.echo "g:vmux_primary").to eq("something")
+        end
+      end
     end
   end
 
@@ -146,8 +160,9 @@ describe "vmux" do
   end
 
   describe ":VmuxSendPrimary" do
+    before(:each) { vim.feedkeys ":VmuxPrimary\\<CR>" }
+
     it "sends command to target" do
-      vim.feedkeys ":VmuxPrimary\\<CR>"
       target_pane = "vmux-test-session-1:0.0"
       vim.feedkeys "#{target_pane}\\<CR>"
 
@@ -156,6 +171,18 @@ describe "vmux" do
       pane_contents = capture_pane(target_pane)
 
       expect(pane_contents).to match(/echo '#{timestamp}'\n#{timestamp}/)
+    end
+
+    context "with a non-existant target" do
+      it "shows an error message" do
+        vim.feedkeys "vmux-test-session-1:9.0\\<CR>"
+
+        vim.command "VmuxSendPrimary \"echo 'hi'\""
+
+        expect(vim.echo("v:errmsg")).to eq(
+          "vmux: window not found: vmux-test-session-1:9"
+        )
+      end
     end
   end
 end

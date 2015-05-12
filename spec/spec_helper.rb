@@ -33,5 +33,11 @@ end
 def renew_tmux(session_names, &block)
   session_names.each { |name| new_session(name) }
   yield
-  session_names.each { |name| kill_session(name) }
+  session_names.each { |name| kill_running_session(name) }
+end
+
+def kill_running_session(name)
+  kill_session(name)
+rescue RuntimeError => e
+  raise e unless e.message =~ /^failed to connect to server: Connection refused$/
 end

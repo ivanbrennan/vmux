@@ -34,7 +34,8 @@ function! Targets(A, L, P)
 endfunction
 
 function! s:Sessions()
-  return system("tmux list-sessions -F '#{session_name}'")
+  let sessions = system("tmux list-sessions -F '#{session_name}'")
+  return v:shell_error ? '' : sessions
 endfunction
 
 function! s:Windows(session)
@@ -56,16 +57,18 @@ endfunction
 
 function! s:SystemCall(command)
   let out = system(a:command)
-  if v:shell_error
-    let message = 'vmux: ' . matchstr(out, '\p\+')
-    echohl ErrorMsg | echom message | echohl None
-    let v:errmsg = message
-  endif
+  if v:shell_error | call s:EchoError(out) | endif
+endfunction
+
+function! s:EchoError(message)
+  let full_message = 'vmux: ' . matchstr(a:message, '\p\+')
+  echohl ErrorMsg | echom full_message | echohl None
+  let v:errmsg = full_message
 endfunction
 
 function! s:SendKeys(rank, text)
   execute 'let target = g:vmux_' . a:rank
-  call system('tmux send-keys -t' . target . ' ' . a:text . ' Enter')
+  call s:SystemCall('tmux send-keys -t' . target . ' ' . a:text . ' Enter')
 endfunction
 
 call s:InitVar('g:vmux_primary')

@@ -9,6 +9,10 @@ module Tmux
     run_silent_command("kill-session -t #{session_name}")
   end
 
+  def list_sessions
+    run_silent_command("list-sessions -F '\#{session_name}'").split("\n")
+  end
+
   def new_window(session_name, window_index)
     run_silent_command("new-window -t #{session_name}:#{window_index}")
   end
@@ -24,6 +28,10 @@ module Tmux
 
   def capture_pane(target_pane)
     run_silent_command("capture-pane -p -t #{target_pane}")
+  end
+
+  def kill_server
+    run_silent_command("kill-server")
   end
 
   private
