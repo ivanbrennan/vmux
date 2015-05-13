@@ -150,6 +150,15 @@ describe "vmux" do
           pane_index("vmux-test-session-1", "1")
         }.to("0")
       end
+
+      it "doesn't adjust target setting" do
+        split_window("vmux-test-session-1", "1")
+        select_pane("vmux-test-session-1", "1", "1")
+
+        expect{ vim.command "VmuxOpenPrimary" }.not_to change{
+          vim.echo "g:vmux_primary"
+        }
+      end
     end
 
     context "with an existing window targeted" do
@@ -186,6 +195,39 @@ describe "vmux" do
       end
     end
 
+    context "with an existing session targeted" do
+      before(:each) do
+        vim.feedkeys ":VmuxPrimary\\<CR>"
+        vim.feedkeys "vmux-test-session-1\\<CR>"
+      end
+
+      context "and auto-spawn off" do
+        it "uses targeted session's active window" do
+          expect{ vim.command "VmuxOpenPrimary" }.not_to change{
+            window_index("vmux-test-session-1")
+          }.from("2")
+        end
+
+        it "uses active window's active pane" do
+          expect{ vim.command "VmuxOpenPrimary" }.not_to change{
+            pane_index("vmux-test-session-1", "2")
+          }
+        end
+
+        it "doesn't generate an error" do
+          vim.command "VmuxOpenPrimary"
+          expect(vim.echo "v:errmsg").to eq("")
+        end
+
+        it "adjusts target to point at the active window's active pane" do
+          2.times { split_window("vmux-test-session-1", "2") }
+
+          expect{ vim.command "VmuxOpenPrimary" }.to change{
+            vim.echo "g:vmux_primary"
+          }.from("vmux-test-session-1").to("vmux-test-session-1:2.2")
+        end
+      end
+    end
     context "with a non-existant target" do
       it "shows an error message" do
         vim.feedkeys ":VmuxPrimary\\<CR>"
@@ -196,6 +238,17 @@ describe "vmux" do
         expect(vim.echo("v:errmsg")).to eq(
           "vmux: window not found: vmux-test-session-1:9"
         )
+      end
+    end
+
+    context "with no target set" do
+      it "prompts for a target" do
+        expect{
+          vim.feedkeys ":VmuxOpenSecondary\\<CR>"
+          vim.feedkeys "vmux-test-session-1:0.0\\<CR>"
+        }.to change{
+          vim.echo "g:vmux_secondary"
+        }.from("").to("vmux-test-session-1:0.0")
       end
     end
   end

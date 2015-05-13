@@ -50,17 +50,34 @@ function! s:Panes(session, window)
 endfunction
 
 function! s:OpenTarget(rank)
-  execute 'let target = g:vmux_' . a:rank
-  let session = matchstr(target, '\v^\zs[-_[:alnum:]]+')
-  let window  = matchstr(target, '\v^[-_[:alnum:]]+:\zs\d+')
-  let pane    = matchstr(target, '\v^[-_[:alnum:]]+:\d+\.\zs\d+')
+  execute "let session = matchstr(g:vmux_" . a:rank . ", '\\v^\\zs[-_[:alnum:]]+')"
 
-  call s:SystemCall('tmux select-window -t ' . session . ':' . window)
-  if pane == ''
-    let pane_query = 'tmux display-message -p -t ' . session . ':' . window . " '#{pane_index}'"
-    let pane_index = matchstr(system(pane_query), '\d\+')
-    execute 'let g:vmux_' . a:rank . ' .= ".' . pane_index . '"'
+  if session == ''
+    call s:SetTarget(a:rank)    " prompt for target
+    return s:OpenTarget(a:rank) " and try again
+  endif
+
+  execute "let window = matchstr(g:vmux_" . a:rank . ", '\\v^[-_[:alnum:]]+:\\zs\\d+')"
+
+  if window == ''
+    " update target to use active window
+    let window_query = 'tmux display-message -p -t ' . session . " '#{window_index}'"
+    let window = matchstr(system(window_query), '\d\+')
+    execute 'let g:vmux_' . a:rank . ' .= ":' . window . '"'
   else
+    " select targeted window
+    call s:SystemCall('tmux select-window -t ' . session . ':' . window)
+  endif
+
+  execute "let pane = matchstr(g:vmux_" . a:rank . ", '\\v^[-_[:alnum:]]+:\\d+\\.\\zs\\d+')"
+
+  if pane == ''
+    " update target to use active pane
+    let pane_query = 'tmux display-message -p -t ' . session . ':' . window . " '#{pane_index}'"
+    let pane = matchstr(system(pane_query), '\d\+')
+    execute 'let g:vmux_' . a:rank . ' .= ".' . pane . '"'
+  else
+    " select targeted pane
     call s:SystemCall('tmux select-pane -t ' . session . ':' . window . '.' . pane)
   endif
 endfunction
