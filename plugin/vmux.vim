@@ -55,38 +55,23 @@ function! s:OpenTarget(rank)
   let session = s:TargetedElement(s:session_pattern, a:rank)
 
   if session != ''
-    let window = s:OpenWindow(session, a:rank)
-    call s:OpenPane(session, window, a:rank)
+    let window = s:TargetedElement(s:window_pattern, a:rank)
+    if window != ''
+      call s:RunShellCmd('tmux select-window -t ' . session . ':' . window)
+    else
+      let window = s:ActiveIndex(session, 'window')
+      execute 'let g:vmux_' . a:rank . ' .= ":' . window . '"'
+    endif
+
+    let pane = s:TargetedElement(s:pane_pattern, a:rank)
+    if pane == ''
+      let pane = s:ActiveIndex(session.':'.window, 'pane')
+      execute 'let g:vmux_' . a:rank . ' .= ".' . pane . '"'
+    endif
   else
     call s:SetTarget(a:rank)
     call s:OpenTarget(a:rank)
   endif
-endfunction
-
-function! s:OpenWindow(session, rank)
-  let window = s:TargetedElement(s:window_pattern, a:rank)
-
-  if window != ''
-    call s:RunShellCmd('tmux select-window -t ' . a:session . ':' . window)
-  else
-    let window = s:ActiveIndex(a:session, 'window')
-    execute 'let g:vmux_' . a:rank . ' .= ":' . window . '"'
-  endif
-
-  return window
-endfunction
-
-function! s:OpenPane(session, window, rank)
-  let pane = s:TargetedElement(s:pane_pattern, a:rank)
-
-  if pane != ''
-    call s:RunShellCmd('tmux select-pane -t ' . a:session . ':' . a:window . '.' . pane)
-  else
-    let pane = s:ActiveIndex(a:session.':'.a:window, 'pane')
-    execute 'let g:vmux_' . a:rank . ' .= ".' . pane . '"'
-  endif
-
-  return pane
 endfunction
 
 function! s:TargetedElement(element_pattern, rank)

@@ -142,13 +142,8 @@ describe "vmux" do
         }.to("1")
       end
 
-      it "selects targeted pane" do
-        split_window("vmux-test-session-1", "1")
-        select_pane("vmux-test-session-1", "1", "1")
-
-        expect{ vim.command "VmuxOpenPrimary" }.to change{
-          pane_index("vmux-test-session-1", "1")
-        }.to("0")
+      context "and targeting Vim's own session" do
+        it "doesn't switch away from the active window"
       end
 
       it "doesn't adjust target setting" do
@@ -172,6 +167,10 @@ describe "vmux" do
           expect{ vim.command "VmuxOpenSecondary" }.to change{
             window_index("vmux-test-session-1")
           }.to("1")
+        end
+
+        context "and targeting Vim's own session" do
+          it "doesn't switch away from the active window"
         end
 
         it "uses targeted window's active pane" do
@@ -228,6 +227,7 @@ describe "vmux" do
         end
       end
     end
+
     context "with a non-existant target" do
       it "shows an error message" do
         vim.feedkeys ":VmuxPrimary\\<CR>"

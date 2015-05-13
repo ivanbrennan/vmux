@@ -65,6 +65,10 @@ direct a command at a target.
   window but no pane, split the window's currently active pane and adjust
   target to point at the new pane.
 
+- Build checks to:
+  * avoid stealing focus from vim (hiding vim window if running inside tmux)
+  * avoid sending tmux commands to pane vim is running in
+  * reselect pane that was active before splitting window
 Inspiration from vim-tmux-runner and tslime
 
 API commands:
