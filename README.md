@@ -7,7 +7,7 @@ Initial motivation:
 Send vim-spec-runner commands to another tmux session.
 
 ```
-function! Spatch()
+func! Spatch()
   let sessions = system("tmux list-sessions -F '#{session_name}'")
   let target   = input('Enter target: ')
   let target_session = matchstr(target, '[[:alnum:]_-]\+')
@@ -19,7 +19,7 @@ function! Spatch()
   else
     let g:spec_runner_dispatcher = "VtrSendCommand! {command}"
   endif
-endfunction
+endf
 ```
 
 Concept:
