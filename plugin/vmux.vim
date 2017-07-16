@@ -5,108 +5,13 @@ if exists("g:loaded_vmux") || v:version < 700 || &cp
 endif
 let g:loaded_vmux = 1
 
-let s:session_pattern = '\v^[-_[:alnum:]]+'
-let s:window_pattern  = s:session_pattern . ':\zs\d+'
-let s:pane_pattern    = s:session_pattern . ':\d+\.\zs\d+'
+let g:vmux_primary = ''
+let g:vmux_secondary = ''
+let g:vmux_auto_spawn = ''
 
-func! s:InitVar(variable_name)
-  if ! exists(a:variable_name)
-    execute 'let ' . a:variable_name . ' = ""'
-  endif
-endf
-
-func! s:SetTarget(rank)
-  let prompt = '"Enter ' . a:rank . ' target: "'
-  let target = 'g:vmux_' . a:rank
-  execute 'let '.target.' = '.'input('.prompt.', '.target.', "custom,Targets")'
-endf
-
-func! Targets(A, L, P)
-  let session = matchstr(a:L, s:session_pattern . '\ze:')
-  let window  = matchstr(a:L, s:window_pattern . '\ze\.')
-  let pane    = matchstr(a:L, s:pane_pattern)
-
-  if session == ''
-    return s:Sessions()
-  elseif window == ''
-    return s:Windows(session)
-  elseif pane == ''
-    return s:Panes(session, window)
-  endif
-endf
-
-func! s:Sessions()
-  let sessions = system("tmux list-sessions -F '#{session_name}'")
-  return v:shell_error ? '' : sessions
-endf
-
-func! s:Windows(session)
-  let format = "'#{session_name}:#{window_index}'"
-  return system('tmux list-windows -t' . a:session . ' -F' . format)
-endf
-
-func! s:Panes(session, window)
-  let target = a:session . ':' . a:window
-  let format = "'#{session_name}:#{window_index}.#{pane_index}'"
-  return system('tmux list-panes -t' . target . ' -F' . format)
-endf
-
-func! s:OpenTarget(rank)
-  let session = s:TargetedElement(s:session_pattern, a:rank)
-
-  if session != ''
-    let window = s:TargetedElement(s:window_pattern, a:rank)
-    if window != ''
-      call s:RunShellCmd('tmux select-window -t ' . session . ':' . window)
-    else
-      let window = s:ActiveIndex(session, 'window')
-      execute 'let g:vmux_' . a:rank . ' .= ":' . window . '"'
-    endif
-
-    let pane = s:TargetedElement(s:pane_pattern, a:rank)
-    if pane == ''
-      let pane = s:ActiveIndex(session.':'.window, 'pane')
-      execute 'let g:vmux_' . a:rank . ' .= ".' . pane . '"'
-    endif
-  else
-    call s:SetTarget(a:rank)
-    call s:OpenTarget(a:rank)
-  endif
-endf
-
-func! s:TargetedElement(element_pattern, rank)
-  execute 'let target = g:vmux_' . a:rank
-  return matchstr(target, a:element_pattern)
-endf
-
-func! s:ActiveIndex(scope, element)
-  let opts = '-p -t '.a:scope.' "#{'.a:element.'_index}"'
-  return matchstr(system('tmux display-message '.opts), '\d\+')
-endf
-
-func! s:RunShellCmd(command)
-  let out = system(a:command)
-  if v:shell_error | call s:EchoError(out) | endif
-endf
-
-func! s:EchoError(message)
-  let full_message = 'vmux: ' . matchstr(a:message, '\p\+')
-  echohl ErrorMsg | echom full_message | echohl None
-  let v:errmsg = full_message
-endf
-
-func! s:SendKeys(text, rank)
-  execute 'let target = g:vmux_' . a:rank
-  call s:RunShellCmd('tmux send-keys -t' . target . ' ' . a:text . ' Enter')
-endf
-
-call s:InitVar('g:vmux_primary')
-call s:InitVar('g:vmux_secondary')
-call s:InitVar('g:vmux_auto_spawn')
-
-command!          VmuxPrimary       call s:SetTarget('primary')
-command!          VmuxSecondary     call s:SetTarget('secondary')
-command!          VmuxOpenPrimary   call s:OpenTarget('primary')
-command!          VmuxOpenSecondary call s:OpenTarget('secondary')
-command! -nargs=1 VmuxSendPrimary   call s:SendKeys(<f-args>, 'primary')
-command! -nargs=1 VmuxSendSecondary call s:SendKeys(<f-args>, 'secondary')
+command!          VmuxPrimary       call vmux#set_target('primary')
+command!          VmuxSecondary     call vmux#set_target('secondary')
+command!          VmuxOpenPrimary   call vmux#open_target('primary')
+command!          VmuxOpenSecondary call vmux#open_target('secondary')
+command! -nargs=1 VmuxSendPrimary   call vmux#send_keys(<f-args>, 'primary')
+command! -nargs=1 VmuxSendSecondary call vmux#send_keys(<f-args>, 'secondary')
