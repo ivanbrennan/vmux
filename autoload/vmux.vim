@@ -5,7 +5,7 @@ let s:pane_pattern    = s:session_pattern . ':\d+\.\zs\d+'
 func! vmux#set_target(rank)
   let prompt = '"Enter ' . a:rank . ' target: "'
   let target = 'g:vmux_' . a:rank
-  execute 'let '.target.' = '.'input('.prompt.', '.target.', "custom,Targets")'
+  execute 'let' target '= input(' prompt ',' target ', "custom,s:targets")'
 endf
 
 func! vmux#open_target(rank)
