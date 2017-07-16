@@ -5,7 +5,7 @@ let s:pane_pattern    = s:session_pattern . ':\d+\.\zs\d+'
 func! vmux#set_target(rank)
   let prompt = '"Enter ' . a:rank . ' target: "'
   let target = 'g:vmux_' . a:rank
-  execute 'let' target '= input(' prompt ',' target ', "custom,s:targets")'
+  execute 'let' target '= input(' prompt ',' target ', "custom,vmux#targets")'
 endf
 
 func! vmux#open_target(rank)
@@ -36,7 +36,7 @@ func! vmux#send_keys(text, rank)
   call s:run_shell_cmd('tmux send-keys -t' . target . ' ' . a:text . ' Enter')
 endf
 
-func! s:targets(A, L, P)
+func! vmux#targets(A, L, P)
   let session = matchstr(a:L, s:session_pattern . '\ze:')
   let window  = matchstr(a:L, s:window_pattern . '\ze\.')
   let pane    = matchstr(a:L, s:pane_pattern)
